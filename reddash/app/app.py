@@ -120,6 +120,7 @@ class FlaskApp(Flask):
 
     async def create_app(self) -> None:
         # Initialize websocket variables.
+        import os
         self.ws = None
 
         # Initialize core variables.
@@ -129,7 +130,7 @@ class FlaskApp(Flask):
         self.config["TEMPLATES_AUTO_RELOAD"]: bool = True
         self.config["MAX_CONTENT_LENGTH"]: int = 16 * 1024 * 1024  # 16MB
 
-        self.config["WEBSOCKET_HOST"]: str = "localhost"
+        self.config["WEBSOCKET_HOST"]: str = os.getenv("REDDASH_RPC_HOST", "localhost") # SQUID: Added ability to override base setting
         self.config["WEBSOCKET_PORT"]: int = self.rpc_port
         self.config["WEBSOCKET_INTERVAL"]: int = self.interval
         self.config["RPC_CONNECTED"]: bool = False
