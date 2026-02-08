@@ -119,8 +119,10 @@ class FlaskApp(Flask):
         app = self
 
     async def create_app(self) -> None:
+        from werkzeug.middleware.proxy_fix import ProxyFix # SQUID: Needed below
+        self.wsgi_app = ProxyFix(self.wsgi_app, x_proto=1, x_host=1, x_prefix=1) # SQUID: Authorized Flask to read Traeffik headers
         # Initialize websocket variables.
-        import os
+        import os # SQUID: Needed below
         self.ws = None
 
         # Initialize core variables.
