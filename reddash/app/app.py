@@ -83,6 +83,7 @@ class FlaskApp(Flask):
 
         if custom_path:
             self.config['APPLICATION_ROOT'] = f"/{custom_path}" # SQUID: For cookies and sessions management
+            self.config['ASSETS_ROOT'] = f"/{custom_path}" # SQUID: For cookies and sessions management
 
         self.cog: typing.Optional[typing.Any] = cog
         self.host: str = os.getenv("REDDASH_HOST", host) # SQUID: Added ability to override base setting
@@ -123,12 +124,19 @@ class FlaskApp(Flask):
         self.wsgi_app = ProxyFix(self.wsgi_app, x_proto=1, x_host=1, x_prefix=1) # SQUID: Authorized Flask to read Traeffik headers
         # Initialize websocket variables.
         import os # SQUID: Needed below
+        custom_path = os.getenv("REDDASH_BASE_PATH", "").strip("/") # SQUID: Needed below
         self.ws = None
 
         # Initialize core variables.
         self.running: bool = True
         self.config.from_object(__name__)
-        self.config["ASSETS_ROOT"]: str = "/static/assets"
+        # SQUID: Overrided base path (start)
+        if custom_path:
+            self.config["APPLICATION_ROOT"] = f"/{custom_path}"
+            self.config["ASSETS_ROOT"] = f"/{custom_path}/static/assets"
+        else:
+            self.config["ASSETS_ROOT"] = "/static/assets"
+        # SQUID: Overrided base path (end)
         self.config["TEMPLATES_AUTO_RELOAD"]: bool = True
         self.config["MAX_CONTENT_LENGTH"]: int = 16 * 1024 * 1024  # 16MB
 
