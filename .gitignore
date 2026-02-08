@@ -1,3 +1,4 @@
 *.pyc
 .idea/
 /Red_Web_Dashboard.egg-info
+.venv
