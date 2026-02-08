@@ -69,13 +69,26 @@ class FlaskApp(Flask):
         interval: int = 15,
         dev: bool = False,
     ) -> None:  # debug: bool = False,
-        super().__init__(import_name=__name__, static_folder="static", template_folder="templates")
+
+        import os
+
+        custom_path = os.getenv("REDDASH_BASE_PATH", "").strip("/")
+
+        super().__init__(
+            import_name=__name__,
+            static_folder="static",
+            template_folder="templates",
+            static_url_path=f"/{custom_path}/static" if custom_path else "/static" # SQUID: Added ability to use a custom path
+            )
+
+        if custom_path:
+            self.config['APPLICATION_ROOT'] = f"/{custom_path}" # SQUID: For cookies and sessions management
 
         self.cog: typing.Optional[typing.Any] = cog
-        self.host: str = host
-        self.port: int = port
-        self.rpc_port: int = rpc_port
-        self.interval: int = interval
+        self.host: str = os.getenv("REDDASH_HOST", host) # SQUID: Added ability to override base setting
+        self.port: int = int(os.getenv("REDDASH_PORT", port)) # SQUID: Added ability to override base setting
+        self.rpc_port: int = int(os.getenv("REDDASH_RPC_PORT", rpc_port)) # SQUID: Added ability to override base setting
+        self.interval: int = int(os.getenv("REDDASH_INTERVAL", interval)) # SQUID: Added ability to override base setting
         self.dev: bool = dev
         self.testing = self.debug = self.dev
 
