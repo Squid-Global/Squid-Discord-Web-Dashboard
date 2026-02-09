@@ -128,6 +128,27 @@ class FlaskApp(Flask):
         self.wsgi_app = ProxyFix(self.wsgi_app, x_proto=1, x_host=1, x_prefix=1) # SQUID: Authorized Flask to read Traeffik headers
         # Initialize websocket variables.
         import os # SQUID: Needed below
+
+        # SQUID: Fix for custom base path (start)
+        import os
+
+        class PrefixMiddleware:
+            def __init__(self, app, prefix):
+                self.app = app
+                self.prefix = prefix
+
+            def __call__(self, environ, start_response):
+                environ['SCRIPT_NAME'] = self.prefix
+                path_info = environ['PATH_INFO']
+                if path_info.startswith(self.prefix):
+                    environ['PATH_INFO'] = path_info[len(self.prefix):]
+                return self.app(environ, start_response)
+
+        custom_path = os.getenv("REDDASH_BASE_PATH", "").strip("/")
+        if custom_path:
+            self.wsgi_app = PrefixMiddleware(self.wsgi_app, f"/{custom_path}")
+        # SQUID: Fix for custom base path (end)
+
         self.ws = None
 
         # Initialize core variables.
